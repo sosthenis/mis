@@ -1,0 +1,16 @@
+<svg viewBox="0 0 300 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MIS — Modelo Integrado de Sustentabilidade e Controladoria">
+  <defs>
+    <linearGradient id="misg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a3d72"/><stop offset="1" stop-color="#2e9e5b"/>
+    </linearGradient>
+  </defs>
+  <!-- símbolo: gota d'água (recurso hídrico) + folha (sustentabilidade) -->
+  <rect x="2" y="6" width="52" height="52" rx="15" fill="url(#misg)"/>
+  <path d="M28 15 C28 15 41 31 41 39 a13 13 0 1 1 -26 0 C15 31 28 15 28 15Z" fill="#ffffff" opacity=".96"/>
+  <path d="M22 40 q6 4 12 0" stroke="#2e9e5b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <path d="M52 9 C40 11 34 21 35 31 C47 30 56 20 52 9Z" fill="#bfe3c4"/>
+  <path d="M39 27 q5 -7 11 -13" stroke="#0a3d72" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".5"/>
+  <!-- wordmark -->
+  <text x="66" y="36" font-family="Segoe UI, system-ui, Arial, sans-serif" font-size="30" font-weight="800" fill="#ffffff" letter-spacing="-.5">MIS</text>
+  <text x="67" y="50" font-family="Segoe UI, system-ui, Arial, sans-serif" font-size="8.2" font-weight="600" fill="#ffffff" opacity=".82" letter-spacing="1.4">SUSTENTABILIDADE &amp; CONTROLADORIA</text>
+</svg>

@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>Dashboard MIS-COGERH</title>
+<style>
+  :root{
+    --azul:#062c52;--azul2:#0a3d72;--azul3:#0f4f93;
+    --branco:#fff;--tinta:#0b1c2c;--cinza:#5a6b7b;
+    --linha:#dde6ef;--fundo:#eef3f8;--card:#fff;
+    --A:#2e9e5b;--S:#1e88c9;--G:#7b5ea7;--C:#d99020;
+    --ok:#2e9e5b;--med:#d99020;--bad:#d65745;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--fundo);
+    color:var(--tinta);line-height:1.45;-webkit-font-smoothing:antialiased;
+    padding:clamp(12px,3vw,36px)}
+  .wrap{max-width:1180px;margin:0 auto}
+
+  header{background:linear-gradient(120deg,var(--azul),var(--azul3));color:#fff;border-radius:16px;
+    padding:clamp(18px,3.2vw,30px) clamp(20px,3.5vw,38px);box-shadow:0 8px 28px rgba(6,44,82,.18)}
+  header .eyebrow{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;opacity:.8}
+  header h1{font-size:clamp(1.25rem,3vw,1.85rem);font-weight:700;margin:.25em 0 .1em}
+  header p{font-size:.9rem;opacity:.88;max-width:64ch}
+
+  /* TABS */
+  nav.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:18px 0 20px}
+  .tab{border:1px solid var(--linha);background:#fff;color:var(--cinza);padding:9px 16px;
+    border-radius:10px;font-size:.85rem;font-weight:600;cursor:pointer;transition:.15s}
+  .tab:hover{border-color:var(--azul3)}
+  .tab.on{background:var(--azul);color:#fff;border-color:var(--azul)}
+  .tab:focus-visible{outline:2px solid var(--azul3);outline-offset:2px}
+  section.view{display:none;animation:fade .25s ease}
+  section.view.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  h2.sec{font-size:1.05rem;color:var(--azul);margin:0 0 4px}
+  .sub{font-size:.85rem;color:var(--cinza);margin-bottom:16px}
+
+  /* filtros/chips */
+  .filtros{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+  .chip{border:1px solid var(--linha);background:#fff;color:var(--cinza);padding:7px 14px;
+    border-radius:999px;font-size:.8rem;font-weight:600;cursor:pointer;transition:.15s;
+    display:inline-flex;align-items:center;gap:7px}
+  .chip .dot{width:9px;height:9px;border-radius:50%}
+  .chip:hover{border-color:var(--azul3)} .chip.on{background:var(--azul);color:#fff;border-color:var(--azul)}
+  .chip:focus-visible{outline:2px solid var(--azul3);outline-offset:2px}
+
+  /* ===== MATRIZ ===== */
+  .matriz{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 18px rgba(6,44,82,.08);border:1px solid var(--linha)}
+  table{width:100%;border-collapse:collapse}
+  thead th{background:var(--azul);color:#fff;text-align:left;font-size:.7rem;letter-spacing:.05em;
+    text-transform:uppercase;padding:13px 16px;font-weight:600}
+  tbody td{padding:14px 16px;border-top:1px solid var(--linha);vertical-align:middle;font-size:.9rem}
+  tbody tr:hover{background:#f5f9fd}
+  .dimtag{display:inline-flex;align-items:center;gap:7px;font-weight:700;font-size:.82rem}
+  .dimtag .dot{width:11px;height:11px;border-radius:3px}
+  .nome{font-weight:600;color:var(--tinta)}
+  .formula{font-family:ui-monospace,Consolas,monospace;font-size:.78rem;color:var(--cinza);
+    background:#f1f5fa;padding:3px 7px;border-radius:6px;display:inline-block}
+  .meta-cel{min-width:170px}
+  .resp{font-size:.84rem} .per{font-size:.74rem;color:var(--cinza)}
+  .barra{position:relative;height:9px;background:#e6edf4;border-radius:6px;margin-top:6px}
+  .barra .fill{position:absolute;left:0;top:0;height:100%;border-radius:6px}
+  .barra .alvo{position:absolute;top:-3px;width:2px;height:15px;background:var(--tinta);opacity:.55}
+  .valnum{display:flex;justify-content:space-between;font-size:.78rem;color:var(--cinza);margin-top:5px}
+  .valnum b{color:var(--tinta)}
+  .st-ok .fill{background:var(--ok)} .st-med .fill{background:var(--med)} .st-bad .fill{background:var(--bad)}
+  .cards{display:none}
+  .card{background:#fff;border:1px solid var(--linha);border-left-width:5px;border-radius:12px;
+    padding:15px 16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(6,44,82,.06)}
+  .card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px}
+  .card .formula{margin:4px 0 10px}
+  .card .linha-meta{display:flex;justify-content:space-between;font-size:.8rem;color:var(--cinza);margin-bottom:4px}
+
+  /* ===== INFORMES ===== */
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+  .informe{background:#fff;border:1px solid var(--linha);border-radius:12px;padding:16px 18px;
+    box-shadow:0 2px 10px rgba(6,44,82,.06)}
+  .informe .meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .badge{font-size:.68rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+    padding:3px 9px;border-radius:6px;color:#fff}
+  .informe time{font-size:.74rem;color:var(--cinza)}
+  .informe h3{font-size:1rem;margin:2px 0 6px;color:var(--tinta)}
+  .informe p{font-size:.87rem;color:#3a4a59}
+  .row2{display:flex;gap:8px}.row2>*{flex:1}
+  button.btn{background:var(--azul);color:#fff;border:0;border-radius:8px;padding:9px 18px;
+    font:inherit;font-weight:600;font-size:.85rem;cursor:pointer;transition:.15s}
+  button.btn:hover{background:var(--azul3)}
+  button.btn:focus-visible{outline:2px solid var(--azul3);outline-offset:2px}
+  .informe h3 a{color:var(--azul3);text-decoration:none;border-bottom:1px solid transparent;transition:.15s}
+  .informe h3 a:hover{border-bottom-color:var(--azul3)}
+  .informe h3 a::after{content:" \2197";font-size:.8em;opacity:.6}
+
+  /* barra de ações dos informes + dropdown de contatos */
+  .acoes{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+  .dropwrap{position:relative;width:min(420px,100%)}
+  .drop{position:absolute;top:calc(100% + 6px);left:0;z-index:20;width:min(360px,90vw);
+    background:#fff;border:1px solid var(--linha);border-radius:12px;box-shadow:0 12px 34px rgba(6,44,82,.18);
+    padding:8px;display:none;max-height:60vh;overflow:auto}
+  .drop.open{display:block}
+  .contato{padding:10px 12px;border-radius:9px}
+  .contato+.contato{border-top:1px solid var(--linha)}
+  .contato:hover{background:#f5f9fd}
+  .contato .setor{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--azul3)}
+  .contato .nome{font-size:.9rem;font-weight:600;color:var(--tinta);margin:1px 0 2px}
+  .contato a,.contato span.tel{font-size:.8rem;color:var(--cinza);text-decoration:none;display:block}
+  .contato a:hover{color:var(--azul3)}
+
+  /* referências externas */
+  .ref-titulo{font-size:.95rem;color:var(--azul);font-weight:700;margin:26px 0 4px}
+  .reflink{display:flex;align-items:center;gap:11px;background:#fff;border:1px solid var(--linha);
+    border-radius:11px;padding:12px 15px;text-decoration:none;color:inherit;transition:.15s}
+  .reflink:hover{border-color:var(--azul3);box-shadow:0 3px 12px rgba(6,44,82,.08);transform:translateY(-1px)}
+  .reflink .sig{width:42px;height:42px;border-radius:9px;flex:0 0 auto;display:flex;align-items:center;
+    justify-content:center;font-weight:800;font-size:.66rem;color:#fff;background:var(--azul);text-align:center;line-height:1.05}
+  .reflink h4{font-size:.88rem;margin-bottom:1px}
+  .reflink p{font-size:.74rem;color:var(--cinza)}
+
+  /* ===== PESQUISAS ===== */
+  .poll{background:#fff;border:1px solid var(--linha);border-radius:12px;padding:18px 20px;
+    margin-bottom:14px;box-shadow:0 2px 10px rgba(6,44,82,.06)}
+  .poll h3{font-size:1rem;margin-bottom:12px;color:var(--tinta)}
+  .opt{position:relative;border:1px solid var(--linha);border-radius:9px;padding:10px 14px;margin-bottom:8px;
+    cursor:pointer;overflow:hidden;transition:.15s;font-size:.88rem}
+  .opt:hover{border-color:var(--azul3)}
+  .opt .ofill{position:absolute;inset:0 auto 0 0;background:rgba(15,79,147,.12);width:0;transition:width .5s}
+  .opt .otxt{position:relative;display:flex;justify-content:space-between;align-items:center}
+  .opt .opct{font-weight:700;color:var(--azul);font-size:.82rem;opacity:0;transition:.3s}
+  .poll.voted .opt{cursor:default}
+  .poll.voted .opt .opct{opacity:1}
+  .poll .total{font-size:.74rem;color:var(--cinza);margin-top:6px}
+
+  /* ===== DOCUMENTOS ===== */
+  .search{width:100%;border:1px solid var(--linha);border-radius:10px;padding:10px 14px;
+    font:inherit;font-size:.9rem;margin-bottom:14px;background:#fff}
+  .doc{display:flex;align-items:flex-start;gap:12px;background:#fff;border:1px solid var(--linha);
+    border-radius:11px;padding:13px 16px;margin-bottom:10px;text-decoration:none;color:inherit;transition:.15s}
+  .doc:hover{border-color:var(--azul3);box-shadow:0 3px 12px rgba(6,44,82,.08)}
+  .doc .ic{width:38px;height:38px;border-radius:8px;flex:0 0 auto;display:flex;align-items:center;
+    justify-content:center;font-weight:800;font-size:.7rem;color:#fff}
+  .doc .info h3{font-size:.92rem;margin-bottom:2px}
+  .doc .info p{font-size:.78rem;color:var(--cinza)}
+  .doc .tagdoc{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+    padding:2px 8px;border-radius:5px;margin-top:5px;display:inline-block}
+  .tag-leg{background:#eaf0fb;color:var(--azul3)} .tag-soc{background:#e8f5ee;color:var(--A)}
+  .empty{text-align:center;color:var(--cinza);font-size:.86rem;padding:24px}
+
+  footer{margin-top:22px;font-size:.74rem;color:var(--cinza);text-align:center;line-height:1.6}
+
+  @media (max-width:820px){.matriz{display:none}.cards{display:block}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+  /* ============================================================
+     OVERRIDE — aba INFORMES em fundo azul + texto branco
+     (escopo restrito a #v-informes; demais abas permanecem claras)
+     ============================================================ */
+  #v-informes{background:linear-gradient(135deg,var(--azul),var(--azul3));
+    border-radius:16px;padding:clamp(18px,3vw,28px);
+    box-shadow:0 8px 28px rgba(6,44,82,.18)}
+  #v-informes .sec,
+  #v-informes .ref-titulo{color:#fff}
+  #v-informes .sub{color:rgba(255,255,255,.82)}
+
+  /* cards de informe translúcidos sobre o azul */
+  #v-informes .informe,
+  #v-informes .reflink{background:rgba(255,255,255,.08);
+    border-color:rgba(255,255,255,.18);color:#fff;box-shadow:none}
+  #v-informes .informe h3{color:#fff}
+  #v-informes .informe p,
+  #v-informes .reflink p{color:rgba(255,255,255,.85)}
+  #v-informes .informe time{color:rgba(255,255,255,.7)}
+  #v-informes .informe h3 a{color:#fff;border-bottom-color:transparent}
+  #v-informes .informe h3 a:hover{border-bottom-color:#fff}
+  #v-informes .reflink h4{color:#fff}
+  #v-informes .reflink .sig{background:rgba(255,255,255,.16)}
+  #v-informes .reflink:hover{border-color:#fff;transform:translateY(-1px);
+    box-shadow:0 3px 14px rgba(0,0,0,.22)}
+
+  /* dropdown Contatos COGERH — maior e funcional */
+  #btn-contatos{width:100%;display:flex;align-items:center;justify-content:space-between;
+    gap:12px;padding:14px 18px;font-size:.95rem;
+    background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28)}
+  #btn-contatos:hover{background:rgba(255,255,255,.2)}
+  #btn-contatos .chev{transition:transform .2s ease;font-size:.9em}
+  #btn-contatos.open .chev{transform:rotate(180deg)}
+  #v-informes .acoes{width:100%}
+
+  /* ============================================================
+     LOGO MIS · MENU LATERAL (canto direito) · REDES SOCIAIS · CAPAS
+     ============================================================ */
+  .header-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+  .mis-logo{display:flex;align-items:center;text-decoration:none}
+  .mis-logo svg{height:46px;width:auto;display:block}
+  .menu-btn{appearance:none;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);
+    color:#fff;width:46px;height:46px;border-radius:12px;font-size:1.4rem;line-height:1;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;flex:0 0 auto;transition:.15s}
+  .menu-btn:hover{background:rgba(255,255,255,.22)}
+  .menu-btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+
+  .overlay{position:fixed;inset:0;background:rgba(6,20,36,.55);
+    opacity:0;visibility:hidden;transition:.25s;z-index:90}
+  .overlay.on{opacity:1;visibility:visible}
+  .drawer{position:fixed;top:0;right:0;height:100%;width:min(360px,86vw);z-index:100;
+    background:linear-gradient(160deg,var(--azul),var(--azul3));color:#fff;
+    transform:translateX(100%);transition:transform .28s ease;
+    display:flex;flex-direction:column;padding:18px 20px;box-shadow:-12px 0 40px rgba(0,0,0,.3);overflow:auto}
+  .drawer.open{transform:translateX(0)}
+  .drawer-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+  .drawer-close{appearance:none;background:none;border:0;color:#fff;font-size:1.9rem;line-height:1;cursor:pointer;
+    width:42px;height:42px;border-radius:10px;transition:.15s}
+  .drawer-close:hover{background:rgba(255,255,255,.15)}
+  .drawer-nav{display:flex;flex-direction:column}
+  .drawer-nav button{appearance:none;background:none;border:0;border-bottom:1px solid rgba(255,255,255,.14);
+    color:#fff;font:inherit;font-size:1.15rem;font-weight:600;text-align:left;padding:16px 4px;cursor:pointer;
+    display:flex;align-items:center;justify-content:space-between;transition:.15s}
+  .drawer-nav button:hover{padding-left:10px;color:#bfe3c4}
+  .drawer-nav button.on{color:#bfe3c4}
+  .drawer-nav .arr{opacity:.55;font-weight:400}
+  .social{margin-top:auto;padding-top:26px;text-align:center}
+  .social h4{font-size:1rem;font-weight:700;margin-bottom:16px}
+  .social-icons{display:flex;justify-content:center;gap:13px;flex-wrap:wrap}
+  .social-icons a{width:48px;height:48px;border-radius:13px;background:#fff;display:flex;align-items:center;
+    justify-content:center;transition:.15s}
+  .social-icons a:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.25)}
+  .social-icons svg{width:22px;height:22px;fill:var(--azul)}
+
+  /* capa temática no topo de cada card de informe */
+  #v-informes .informe{padding:0;overflow:hidden}
+  #v-informes .informe .capa{height:118px;width:100%;display:block;background-size:cover;background-position:center}
+  #v-informes .informe .corpo{padding:15px 18px 17px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="header-top">
+      <a class="mis-logo" href="#" aria-label="MIS — Modelo Integrado de Sustentabilidade e Controladoria">
+        <svg viewBox="0 0 280 64" role="img" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="misg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#0a3d72"/><stop offset="1" stop-color="#2e9e5b"/>
+            </linearGradient>
+          </defs>
+          <rect x="2" y="6" width="52" height="52" rx="15" fill="url(#misg)"/>
+          <path d="M28 15 C28 15 41 31 41 39 a13 13 0 1 1 -26 0 C15 31 28 15 28 15Z" fill="#ffffff" opacity=".96"/>
+          <path d="M22 40 q6 4 12 0" stroke="#2e9e5b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+          <path d="M52 9 C40 11 34 21 35 31 C47 30 56 20 52 9Z" fill="#bfe3c4"/>
+          <path d="M39 27 q5 -7 11 -13" stroke="#0a3d72" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".5"/>
+          <text x="66" y="36" font-family="Segoe UI,system-ui,sans-serif" font-size="30" font-weight="800" fill="#ffffff" letter-spacing="-.5">MIS</text>
+          <text x="67" y="50" font-family="Segoe UI,system-ui,sans-serif" font-size="8.2" font-weight="600" fill="#ffffff" opacity=".82" letter-spacing="1.4">SUSTENTABILIDADE &amp; CONTROLADORIA</text>
+        </svg>
+      </a>
+      <button class="menu-btn" id="menu-btn" aria-label="Abrir menu" aria-expanded="false">&#9776;</button>
+    </div>
+    <div class="eyebrow">MIS-COGERH · Gerência Regional do Crato</div>
+    <h1>Painel de Sustentabilidade e Controladoria</h1>
+    <p>Acompanhamento de indicadores, divulgação institucional, escuta dos servidores e acervo socioambiental e normativo. Protótipo de baixa fidelidade — dados de simulação.</p>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab on" data-v="matriz">Matriz de Indicadores</button>
+    <button class="tab" data-v="informes">Informes Gerais</button>
+    <button class="tab" data-v="pesquisas">Pesquisas de Opinião</button>
+    <button class="tab" data-v="docs">Documentos</button>
+  </nav>
+
+  <!-- ========== MATRIZ ========== -->
+  <section class="view on" id="v-matriz">
+    <h2 class="sec">Matriz de indicadores</h2>
+    <div class="sub">12 indicadores · 3 por dimensão. Barra mostra valor atual frente ao alvo (marca vertical).</div>
+    <div class="filtros" id="filtros-dim" role="group" aria-label="Filtrar por dimensão">
+      <button class="chip on" data-f="all">Todas</button>
+      <button class="chip" data-f="A"><span class="dot" style="background:var(--A)"></span>Ambiental</button>
+      <button class="chip" data-f="S"><span class="dot" style="background:var(--S)"></span>Social</button>
+      <button class="chip" data-f="G"><span class="dot" style="background:var(--G)"></span>Governança</button>
+      <button class="chip" data-f="C"><span class="dot" style="background:var(--C)"></span>Controladoria</button>
+    </div>
+    <div class="matriz">
+      <table>
+        <thead><tr><th>Dim.</th><th>Indicador</th><th>Fórmula</th><th>Responsável</th><th class="meta-cel">Atual × Alvo</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <!-- ========== INFORMES ========== -->
+  <section class="view" id="v-informes">
+    <h2 class="sec">Informes gerais</h2>
+    <div class="sub">Mural de comunicação interna, contatos institucionais e referências em gestão ambiental.</div>
+
+    <div class="acoes">
+      <div class="dropwrap">
+        <button class="btn" id="btn-contatos" aria-expanded="false">
+          <span>Contatos COGERH</span><span class="chev" aria-hidden="true">▾</span>
+        </button>
+        <div class="drop" id="drop-contatos"></div>
+      </div>
+    </div>
+
+    <div class="grid" id="informes"></div>
+
+    <div class="ref-titulo">Referências em gestão ambiental e recursos hídricos</div>
+    <div class="sub">Organismos, centros e portais de referência. Abrem em nova aba.</div>
+    <div class="grid" id="refs"></div>
+  </section>
+
+  <!-- ========== PESQUISAS ========== -->
+  <section class="view" id="v-pesquisas">
+    <h2 class="sec">Pesquisas de opinião</h2>
+    <div class="sub">Escuta dos servidores sobre sustentabilidade, governança e o programa GEO Verde. Um voto por pergunta.</div>
+    <div id="polls"></div>
+  </section>
+
+  <!-- ========== DOCUMENTOS ========== -->
+  <section class="view" id="v-docs">
+    <h2 class="sec">Acervo documental</h2>
+    <div class="sub">Material socioambiental da COGERH e legislação aplicável à área. Substitua os links pelos arquivos oficiais.</div>
+    <input class="search" id="busca" placeholder="Buscar por título ou referência...">
+    <div class="filtros" id="filtros-doc" role="group" aria-label="Filtrar documentos">
+      <button class="chip on" data-c="all">Todos</button>
+      <button class="chip" data-c="soc"><span class="dot" style="background:var(--A)"></span>Socioambiental</button>
+      <button class="chip" data-c="leg"><span class="dot" style="background:var(--azul3)"></span>Legislação</button>
+    </div>
+    <div id="docs"></div>
+  </section>
+
+  <footer>
+    MIS-COGERH · Ana · Daniel · Sósthenis · Orient. Profª Alessandra C. Vasconcelos · UFC/PPAC-PROF · 2026<br>
+    A — Ambiental · S — Social · G — Governança · C — Controladoria · Dados não persistem (protótipo)
+  </footer>
+</div>
+
+<!-- ===== MENU LATERAL (canto direito) ===== -->
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Menu" aria-hidden="true">
+  <div class="drawer-head">
+    <svg viewBox="0 0 280 64" style="height:42px" role="img" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="misg2" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#0a3d72"/><stop offset="1" stop-color="#2e9e5b"/></linearGradient></defs>
+      <rect x="2" y="6" width="52" height="52" rx="15" fill="url(#misg2)"/>
+      <path d="M28 15 C28 15 41 31 41 39 a13 13 0 1 1 -26 0 C15 31 28 15 28 15Z" fill="#fff" opacity=".96"/>
+      <path d="M22 40 q6 4 12 0" stroke="#2e9e5b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+      <path d="M52 9 C40 11 34 21 35 31 C47 30 56 20 52 9Z" fill="#bfe3c4"/>
+      <text x="66" y="36" font-family="Segoe UI,sans-serif" font-size="30" font-weight="800" fill="#fff">MIS</text>
+      <text x="67" y="50" font-family="Segoe UI,sans-serif" font-size="8.2" font-weight="600" fill="#fff" opacity=".82" letter-spacing="1.4">SUSTENTABILIDADE &amp; CONTROLADORIA</text>
+    </svg>
+    <button class="drawer-close" id="drawer-close" aria-label="Fechar menu">&times;</button>
+  </div>
+  <nav class="drawer-nav">
+    <button data-v="matriz">Matriz de Indicadores <span class="arr">&rsaquo;</span></button>
+    <button data-v="informes">Informes Gerais <span class="arr">&rsaquo;</span></button>
+    <button data-v="pesquisas">Pesquisas de Opinião <span class="arr">&rsaquo;</span></button>
+    <button data-v="docs">Documentos <span class="arr">&rsaquo;</span></button>
+  </nav>
+  <div class="social">
+    <h4>Siga a COGERH nas redes sociais</h4>
+    <div class="social-icons">
+      <!-- Confirme/ajuste os @ oficiais antes de publicar -->
+      <a href="https://www.instagram.com/cogerh/" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg viewBox="0 0 24 24"><path d="M12 2.2c3.2 0 3.6 0 4.9.07 1.2.06 1.8.26 2.2.43.6.2 1 .47 1.4.9.43.4.7.8.9 1.4.17.4.37 1 .43 2.2.07 1.3.07 1.7.07 4.9s0 3.6-.07 4.9c-.06 1.2-.26 1.8-.43 2.2-.2.6-.47 1-.9 1.4-.4.43-.8.7-1.4.9-.4.17-1 .37-2.2.43-1.3.07-1.7.07-4.9.07s-3.6 0-4.9-.07c-1.2-.06-1.8-.26-2.2-.43-.6-.2-1-.47-1.4-.9-.43-.4-.7-.8-.9-1.4-.17-.4-.37-1-.43-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.07-4.9c.06-1.2.26-1.8.43-2.2.2-.6.47-1 .9-1.4.4-.43.8-.7 1.4-.9.4-.17 1-.37 2.2-.43C8.4 2.2 8.8 2.2 12 2.2zm0 1.8c-3.1 0-3.5 0-4.7.07-1.1.05-1.7.24-2.1.4-.5.2-.9.43-1.3.83-.4.4-.63.8-.83 1.3-.16.4-.35 1-.4 2.1C2.6 9.5 2.6 9.9 2.6 13s0 3.5.07 4.7c.05 1.1.24 1.7.4 2.1.2.5.43.9.83 1.3.4.4.8.63 1.3.83.4.16 1 .35 2.1.4 1.2.07 1.6.07 4.7.07s3.5 0 4.7-.07c1.1-.05 1.7-.24 2.1-.4.5-.2.9-.43 1.3-.83.4-.4.63-.8.83-1.3.16-.4.35-1 .4-2.1.07-1.2.07-1.6.07-4.7s0-3.5-.07-4.7c-.05-1.1-.24-1.7-.4-2.1-.2-.5-.43-.9-.83-1.3-.4-.4-.8-.63-1.3-.83-.4-.16-1-.35-2.1-.4C15.5 4 15.1 4 12 4zm0 3.1a4.9 4.9 0 1 1 0 9.8 4.9 4.9 0 0 1 0-9.8zm0 8.08a3.18 3.18 0 1 0 0-6.36 3.18 3.18 0 0 0 0 6.36zm6.24-8.28a1.15 1.15 0 1 1-2.3 0 1.15 1.15 0 0 1 2.3 0z"/></svg>
+      </a>
+      <a href="https://www.facebook.com/cogerh/" target="_blank" rel="noopener" aria-label="Facebook">
+        <svg viewBox="0 0 24 24"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.78-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0 0 22 12z"/></svg>
+      </a>
+      <a href="https://www.youtube.com/@cogerh" target="_blank" rel="noopener" aria-label="YouTube">
+        <svg viewBox="0 0 24 24"><path d="M23 7.5a3 3 0 0 0-2.1-2.1C19 4.9 12 4.9 12 4.9s-7 0-8.9.5A3 3 0 0 0 1 7.5C.5 9.4.5 12 .5 12s0 2.6.5 4.5a3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1c.5-1.9.5-4.5.5-4.5s0-2.6-.5-4.5zM9.75 15.5v-7l6 3.5-6 3.5z"/></svg>
+      </a>
+      <a href="https://www.linkedin.com/company/cogerh/" target="_blank" rel="noopener" aria-label="LinkedIn">
+        <svg viewBox="0 0 24 24"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
+      </a>
+      <a href="https://x.com/cogerh" target="_blank" rel="noopener" aria-label="X">
+        <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      </a>
+    </div>
+  </div>
+</aside>
+
+<script>
+/* ============ NAV + MENU LATERAL ============ */
+function activate(v){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.dataset.v===v));
+  document.querySelectorAll(".drawer-nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
+  document.querySelectorAll(".view").forEach(s=>s.classList.remove("on"));
+  document.getElementById("v-"+v).classList.add("on");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+document.getElementById("tabs").addEventListener("click",e=>{
+  const b=e.target.closest(".tab"); if(b) activate(b.dataset.v);
+});
+
+const drawer=document.getElementById("drawer"),overlay=document.getElementById("overlay"),
+      menuBtn=document.getElementById("menu-btn");
+function openDrawer(){drawer.classList.add("open");overlay.classList.add("on");
+  drawer.setAttribute("aria-hidden","false");menuBtn.setAttribute("aria-expanded","true");}
+function closeDrawer(){drawer.classList.remove("open");overlay.classList.remove("on");
+  drawer.setAttribute("aria-hidden","true");menuBtn.setAttribute("aria-expanded","false");}
+menuBtn.addEventListener("click",openDrawer);
+document.getElementById("drawer-close").addEventListener("click",closeDrawer);
+overlay.addEventListener("click",closeDrawer);
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer();});
+document.querySelector(".drawer-nav").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b)return; activate(b.dataset.v); closeDrawer();
+});
+
+/* ============ MATRIZ ============ */
+const DIM={A:{n:"Ambiental",c:"--A"},S:{n:"Social",c:"--S"},G:{n:"Governança",c:"--G"},C:{n:"Controladoria",c:"--C"}};
+const IND=[
+ {d:"A",nome:"Eficiência hídrica",f:"m³ potável ÷ nº servidores",resp:"G. Ambiental",per:"Mensal",val:62,alvo:80},
+ {d:"A",nome:"Autossuficiência energética",f:"(kWh FV ÷ kWh consumido)×100",resp:"G. Manutenção",per:"Mensal",val:71,alvo:80},
+ {d:"A",nome:"Aproveitamento pluvial",f:"m³ reusado ÷ demanda não potável",resp:"G. Ambiental",per:"Mensal",val:45,alvo:70},
+ {d:"S",nome:"Capacitação em sustentabilidade",f:"(capacitados ÷ total)×100",resp:"G. Regional / RH",per:"Semestral",val:58,alvo:70},
+ {d:"S",nome:"Acessibilidade e conforto",f:"(itens NBR 9050 ÷ total)×100",resp:"G. Manutenção",per:"Anual",val:84,alvo:90},
+ {d:"S",nome:"Engajamento no GEO Verde",f:"(participantes ativos ÷ total)×100",resp:"G. Regional",per:"Trimestral",val:40,alvo:60},
+ {d:"G",nome:"Cobertura de responsáveis",f:"(ind. c/ responsável ÷ total)×100",resp:"Controladoria",per:"Trimestral",val:92,alvo:100},
+ {d:"G",nome:"Rastreabilidade de evidências",f:"(ind. c/ evidência ÷ total)×100",resp:"Controladoria",per:"Trimestral",val:35,alvo:80},
+ {d:"G",nome:"Transparência / divulgação",f:"relatórios divulgados ÷ previstos",resp:"G. Regional",per:"Semestral",val:50,alvo:80},
+ {d:"C",nome:"Cumprimento de rotinas",f:"(realizadas ÷ previstas)×100",resp:"Controladoria",per:"Trimestral",val:66,alvo:90},
+ {d:"C",nome:"Tratamento de não conformidades",f:"(NC tratadas ÷ identificadas)×100",resp:"Controladoria",per:"Trimestral",val:70,alvo:90},
+ {d:"C",nome:"Tempestividade de reporte",f:"(no prazo ÷ total)×100",resp:"Controladoria",per:"Trimestral",val:75,alvo:90},
+];
+const status=(v,a)=>{const r=v/a;return r>=1?"ok":r>=.8?"med":"bad";};
+const barra=(v,a)=>{const st=status(v,a),pct=Math.min(100,v/a*100);
+  return `<div class="barra st-${st}"><div class="fill" style="width:${pct}%"></div><div class="alvo" style="left:100%"></div></div>
+  <div class="valnum"><span>atual <b>${v}</b></span><span>alvo <b>${a}</b></span></div>`;};
+const dimtag=d=>`<span class="dimtag" style="color:var(${DIM[d].c})"><span class="dot" style="background:var(${DIM[d].c})"></span>${d}</span>`;
+const tbody=document.getElementById("tbody"),cards=document.getElementById("cards");
+function renderMatriz(f="all"){
+  const L=f==="all"?IND:IND.filter(i=>i.d===f);
+  tbody.innerHTML=L.map(i=>`<tr><td>${dimtag(i.d)}</td><td class="nome">${i.nome}</td>
+    <td><span class="formula">${i.f}</span></td>
+    <td><div class="resp">${i.resp}</div><div class="per">${i.per}</div></td>
+    <td class="meta-cel">${barra(i.val,i.alvo)}</td></tr>`).join("");
+  cards.innerHTML=L.map(i=>`<div class="card st-${status(i.val,i.alvo)}" style="border-left-color:var(${DIM[i.d].c})">
+    <div class="top"><span class="nome">${i.nome}</span>${dimtag(i.d)}</div>
+    <span class="formula">${i.f}</span>
+    <div class="linha-meta"><span>${i.resp}</span><span>${i.per}</span></div>${barra(i.val,i.alvo)}</div>`).join("");
+}
+renderMatriz();
+document.getElementById("filtros-dim").addEventListener("click",e=>{
+  const b=e.target.closest(".chip");if(!b)return;
+  document.querySelectorAll("#filtros-dim .chip").forEach(c=>c.classList.remove("on"));
+  b.classList.add("on");renderMatriz(b.dataset.f);
+});
+
+/* ============ INFORMES ============ */
+const CATCOR={Aviso:"--azul3",Resultado:"--A",Treinamento:"--S",Campanha:"--C"};
+
+/* capa temática (SVG gerado, zero dependência externa).
+   Para usar foto real: troque por  i.img = "https://.../foto.jpg"  e ajuste renderInformes. */
+const CAPA={
+  Aviso:      {c:["#0f4f93","#062c52"], ic:"M40 8 L70 60 H10 Z M37 28 h6 v16 h-6 Z M40 50 a3.4 3.4 0 1 1 0 6.8 a3.4 3.4 0 0 1 0-6.8 Z"},
+  Resultado:  {c:["#2e9e5b","#1c6e3f"], ic:"M12 44 h11 v18 H12 Z M30 30 h11 v32 H30 Z M48 16 h11 v46 H48 Z"},
+  Treinamento:{c:["#1e88c9","#0f5f93"], ic:"M40 16 L72 30 L40 44 L8 30 Z M18 36 V50 c0 6 44 6 44 0 V36 L40 46 Z M70 31 V46"},
+  Campanha:   {c:["#d99020","#a86c12"], ic:"M62 12 C30 14 18 40 22 64 C54 62 74 38 62 12 Z M30 60 C38 46 50 32 62 22"},
+};
+function capa(cat){
+  const k=CAPA[cat]||CAPA.Aviso;
+  const svg=`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 160' preserveAspectRatio='xMidYMid slice'>`
+    +`<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='${k.c[0]}'/><stop offset='1' stop-color='${k.c[1]}'/></linearGradient></defs>`
+    +`<rect width='400' height='160' fill='url(#g)'/>`
+    +`<g transform='translate(250 42) scale(1.45)' fill='rgba(255,255,255,.20)' stroke='rgba(255,255,255,.20)' stroke-width='2' stroke-linejoin='round'><path d='${k.ic}'/></g>`
+    +`<g transform='translate(26 120)' fill='rgba(255,255,255,.92)' font-family='Segoe UI,sans-serif' font-weight='700' font-size='15'><text letter-spacing='1.5'>${cat.toUpperCase()}</text></g>`
+    +`</svg>`;
+  return "data:image/svg+xml,"+encodeURIComponent(svg);
+}
+
+let INFORMES=[
+ {t:"Meta M3 entregue à banca",cat:"Resultado",data:"2026-06-15",txt:"Matriz com 12 indicadores validada metodologicamente. Próximo passo: validação com gestor (M5).",url:"https://www.cogerh.com.br/category/noticias"},
+ {t:"Capacitação: uso racional da água",cat:"Treinamento",data:"2026-06-10",txt:"Inscrições abertas para o curso rápido de eficiência hídrica voltado aos servidores da Regional do Crato.",url:"https://www.cogerh.com.br/category/noticias"},
+ {t:"Lançamento do programa GEO Verde",cat:"Campanha",data:"2026-06-05",txt:"Gamificação do engajamento socioambiental começa em caráter piloto. Participe e acumule pontos por unidade.",url:"https://www.cogerh.com.br/category/noticias"},
+ {t:"Coleta de evidências trimestral",cat:"Aviso",data:"2026-06-01",txt:"Responsáveis devem anexar evidências dos indicadores de governança até o dia 30. Rastreabilidade ainda em 35%.",url:"https://www.cogerh.com.br/category/noticias"},
+];
+function renderInformes(){
+  document.getElementById("informes").innerHTML=INFORMES.map(i=>`
+   <article class="informe">
+     <span class="capa" style="background-image:url(&quot;${i.img||capa(i.cat)}&quot;)"></span>
+     <div class="corpo">
+       <div class="meta"><span class="badge" style="background:var(${CATCOR[i.cat]||'--azul'})">${i.cat}</span>
+       <time>${new Date(i.data+"T00:00").toLocaleDateString("pt-BR")}</time></div>
+       <h3><a href="${i.url||'#'}" target="_blank" rel="noopener">${esc(i.t)}</a></h3><p>${esc(i.txt)}</p>
+     </div>
+   </article>`).join("");
+}
+const esc=s=>String(s).replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));
+renderInformes();
+
+/* ============ CONTATOS COGERH ============ */
+/* Institucionais públicos (fonte: portal.cogerh.com.br). Internos GEOPE/Ambiental = preencher. */
+const CONTATOS=[
+ {setor:"Gerência Regional do Crato",nome:"Emídio Clebson Batista (Gerente)",mail:"emidio.clebson@cogerh.com.br",tel:"(85) 3513-9053"},
+ {setor:"Atendimento / Outorga",nome:"Central de Atendimento",mail:"atendimento.outorga@cogerh.com.br",tel:"(85) 3513-9081 · WhatsApp (85) 98897-9658"},
+ {setor:"Fiscalização",nome:"Fiscalização do uso da água",mail:"fiscalizacao@cogerh.com.br",tel:"(85) 3195-0798"},
+ {setor:"Assessoria de Comunicação (Ascom)",nome:"Imprensa COGERH",mail:"ascom@cogerh.com.br",tel:"(85) 3195-0718 / 0719"},
+ {setor:"Gerência de Operações (GEOPE)",nome:"[preencher responsável]",mail:"geope@cogerh.com.br",tel:"(85) 3195-0700"},
+ {setor:"Gerência Ambiental",nome:"[preencher responsável]",mail:"ambiental@cogerh.com.br",tel:"(85) 3195-0700"},
+];
+const drop=document.getElementById("drop-contatos"),btnC=document.getElementById("btn-contatos");
+drop.innerHTML=CONTATOS.map(c=>`
+  <div class="contato">
+    <div class="setor">${esc(c.setor)}</div>
+    <div class="nome">${esc(c.nome)}</div>
+    <a href="mailto:${c.mail}">✉ ${esc(c.mail)}</a>
+    <span class="tel">☎ ${esc(c.tel)}</span>
+  </div>`).join("");
+btnC.addEventListener("click",e=>{e.stopPropagation();
+  const open=drop.classList.toggle("open");
+  btnC.classList.toggle("open",open);
+  btnC.setAttribute("aria-expanded",open);});
+document.addEventListener("click",e=>{if(!drop.contains(e.target)&&!btnC.contains(e.target)){
+  drop.classList.remove("open");btnC.classList.remove("open");btnC.setAttribute("aria-expanded","false");}});
+
+/* ============ REFERÊNCIAS EXTERNAS ============ */
+const REFS=[
+ {sig:"ANA",nome:"Agência Nacional de Águas e Saneamento Básico",desc:"Regulação e Conjuntura dos Recursos Hídricos",url:"https://www.gov.br/ana"},
+ {sig:"SNIRH",nome:"Sistema Nacional de Inf. sobre Recursos Hídricos",desc:"Dados, indicadores e relatórios",url:"https://www.snirh.gov.br"},
+ {sig:"SRH-CE",nome:"Secretaria dos Recursos Hídricos do Ceará",desc:"Política estadual de águas",url:"https://www.srh.ce.gov.br"},
+ {sig:"FUN",nome:"FUNCEME",desc:"Meteorologia e recursos hídricos do Ceará",url:"https://www.funceme.br"},
+ {sig:"SEMA",nome:"SEMACE",desc:"Licenciamento e fiscalização ambiental — CE",url:"https://www.semace.ce.gov.br"},
+ {sig:"MMA",nome:"Ministério do Meio Ambiente",desc:"Política ambiental federal",url:"https://www.gov.br/mma"},
+ {sig:"IBAMA",nome:"IBAMA",desc:"Licenciamento e controle ambiental federal",url:"https://www.gov.br/ibama"},
+ {sig:"ICM",nome:"ICMBio",desc:"Unidades de conservação",url:"https://www.gov.br/icmbio"},
+ {sig:"CONA",nome:"CONAMA",desc:"Resoluções e normas ambientais",url:"https://www.gov.br/mma/pt-br/composicao/conama"},
+ {sig:"ODS",nome:"Agenda 2030 / ODS — ONU Brasil",desc:"Objetivos de Desenvolvimento Sustentável",url:"https://brasil.un.org/pt-br/sdgs"},
+ {sig:"PG",nome:"Pacto Global Rede Brasil",desc:"Referência ESG e sustentabilidade corporativa",url:"https://www.pactoglobal.org.br"},
+ {sig:"COG",nome:"COGERH",desc:"Portal institucional e publicações",url:"https://www.cogerh.com.br"},
+];
+document.getElementById("refs").innerHTML=REFS.map(r=>`
+  <a class="reflink" href="${r.url}" target="_blank" rel="noopener">
+    <div class="sig">${esc(r.sig)}</div>
+    <div><h4>${esc(r.nome)}</h4><p>${esc(r.desc)}</p></div>
+  </a>`).join("");
+
+/* ============ PESQUISAS ============ */
+let POLLS=[
+ {q:"Qual prática de sustentabilidade deve ser priorizada na nova sede do Crato?",
+  o:[["Geração fotovoltaica",18],["Reúso de água pluvial",11],["Eficiência energética (LED)",6],["Drenagem sustentável",4]]},
+ {q:"Você participaria do programa GEO Verde?",
+  o:[["Sim, ativamente",22],["Talvez",9],["Não",3]]},
+ {q:"Qual a maior barreira à sustentabilidade na COGERH hoje?",
+  o:[["Cultura / engajamento",15],["Orçamento",12],["Falta de dados / medição",10],["Excesso de normas",2]]},
+ {q:"Como avalia a transparência atual dos indicadores socioambientais?",
+  o:[["Ótima",3],["Boa",8],["Regular",14],["Ruim",6]]},
+];
+const voted=new Set();
+function renderPolls(){
+  document.getElementById("polls").innerHTML=POLLS.map((p,pi)=>{
+    const tot=p.o.reduce((s,o)=>s+o[1],0),vt=voted.has(pi);
+    return `<div class="poll${vt?' voted':''}" data-pi="${pi}">
+      <h3>${esc(p.q)}</h3>
+      ${p.o.map((o,oi)=>{const pct=tot?Math.round(o[1]/tot*100):0;
+        return `<div class="opt" data-oi="${oi}">
+          <div class="ofill" style="width:${vt?pct:0}%"></div>
+          <div class="otxt"><span>${esc(o[0])}</span><span class="opct">${pct}% · ${o[1]}</span></div></div>`;}).join("")}
+      <div class="total">${tot} ${tot===1?'voto':'votos'}${vt?' · obrigado pela participação':''}</div></div>`;
+  }).join("");
+}
+document.getElementById("polls").addEventListener("click",e=>{
+  const opt=e.target.closest(".opt");if(!opt)return;
+  const pi=+opt.closest(".poll").dataset.pi,oi=+opt.dataset.oi;
+  if(voted.has(pi))return;
+  POLLS[pi].o[oi][1]++;voted.add(pi);renderPolls();
+});
+renderPolls();
+
+/* ============ DOCUMENTOS ============ */
+const DOCS=[
+ // Socioambiental COGERH
+ {t:"PLS COGERH 2026–2030",ref:"Plano de Logística Sustentável — metas e indicadores ESG",cat:"soc",url:"#"},
+ {t:"Diagnóstico A3P",ref:"Agenda Ambiental na Administração Pública — linha de base",cat:"soc",url:"#"},
+ {t:"Relatório de Sustentabilidade COGERH",ref:"Balanço socioambiental institucional",cat:"soc",url:"#"},
+ {t:"Especificação do Programa GEO Verde",ref:"Gestão Ecoeficiente Operacional — gamificação ESG",cat:"soc",url:"#"},
+ {t:"Cartilha de uso racional da água",ref:"Material de educação ambiental para servidores",cat:"soc",url:"#"},
+ {t:"Requisitos sustentáveis da nova sede",ref:"FV, poço profundo, LED e drenagem pluvial (G. Manutenção)",cat:"soc",url:"#"},
+ // Legislação
+ {t:"Lei nº 9.433/1997",ref:"Política Nacional de Recursos Hídricos — SINGREH",cat:"leg",url:"#"},
+ {t:"Lei Estadual CE nº 11.996/1992",ref:"Política Estadual de Recursos Hídricos do Ceará",cat:"leg",url:"#"},
+ {t:"Lei nº 9.984/2000",ref:"Criação da Agência Nacional de Águas (ANA)",cat:"leg",url:"#"},
+ {t:"Lei nº 14.026/2020",ref:"Novo Marco Legal do Saneamento Básico",cat:"leg",url:"#"},
+ {t:"Lei nº 13.303/2016",ref:"Estatuto das estatais — regime aplicável à COGERH",cat:"leg",url:"#"},
+ {t:"Lei nº 14.300/2022",ref:"Marco legal da Geração Distribuída (fotovoltaica)",cat:"leg",url:"#"},
+ {t:"Lei nº 12.305/2010",ref:"Política Nacional de Resíduos Sólidos",cat:"leg",url:"#"},
+ {t:"ABNT NBR 9050",ref:"Acessibilidade a edificações, mobiliário e espaços",cat:"leg",url:"#"},
+ {t:"Decreto Estadual CE nº 35.283/2023",ref:"Regulamento de contratações no âmbito estadual",cat:"leg",url:"#"},
+];
+function renderDocs(){
+  const q=document.getElementById("busca").value.toLowerCase();
+  const c=document.querySelector("#filtros-doc .chip.on").dataset.c;
+  const L=DOCS.filter(d=>(c==="all"||d.cat===c)&&(d.t+d.ref).toLowerCase().includes(q));
+  const box=document.getElementById("docs");
+  if(!L.length){box.innerHTML=`<div class="empty">Nenhum documento encontrado.</div>`;return;}
+  box.innerHTML=L.map(d=>{
+    const soc=d.cat==="soc";
+    return `<a class="doc" href="${d.url}" target="_blank" rel="noopener">
+      <div class="ic" style="background:var(${soc?'--A':'--azul3'})">${soc?'SOC':'LEG'}</div>
+      <div class="info"><h3>${esc(d.t)}</h3><p>${esc(d.ref)}</p>
+      <span class="tagdoc ${soc?'tag-soc':'tag-leg'}">${soc?'Socioambiental':'Legislação'}</span></div></a>`;
+  }).join("");
+}
+document.getElementById("busca").addEventListener("input",renderDocs);
+document.getElementById("filtros-doc").addEventListener("click",e=>{
+  const b=e.target.closest(".chip");if(!b)return;
+  document.querySelectorAll("#filtros-doc .chip").forEach(c=>c.classList.remove("on"));
+  b.classList.add("on");renderDocs();
+});
+renderDocs();
+</script>
+</body>
+</html>
