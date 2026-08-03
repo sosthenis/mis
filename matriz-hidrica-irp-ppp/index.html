@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Matriz Hídrica IRP–PPP Digital</title>
+<style>
+html,body{height:100%;margin:0;font-family:Arial,sans-serif;background:#f5f7fa;color:#123}
+#status{display:flex;align-items:center;justify-content:center;height:100%;padding:24px;text-align:center}
+</style>
+</head>
+<body>
+<div id="status">Carregando a Matriz Hídrica IRP–PPP Digital...</div>
+<script>
+(async()=>{
+  const parts = await Promise.all(
+    Array.from({length:7},(_,i)=>fetch(`part${i}.txt`).then(r=>{
+      if(!r.ok) throw new Error(`Falha ao carregar parte ${i}`);
+      return r.text();
+    }))
+  );
+  const b64 = parts.join('');
+  const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  if(!('DecompressionStream' in window)){
+    document.getElementById('status').innerHTML =
+      'Seu navegador não suporta a descompactação necessária. Abra em Chrome, Edge, Firefox ou Safari atualizado.';
+    return;
+  }
+  const ds = new DecompressionStream('gzip');
+  const html = await new Response(new Blob([bytes]).stream().pipeThrough(ds)).text();
+  document.open();
+  document.write(html);
+  document.close();
+})().catch(e=>{
+  document.getElementById('status').textContent='Não foi possível carregar o dashboard: '+e.message;
+});
+</script>
+</body>
+</html>
