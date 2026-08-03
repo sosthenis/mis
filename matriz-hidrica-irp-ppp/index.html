@@ -3,18 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Matriz Hídrica IRP–PPP Digital</title>
+<title>Matriz Essencial IRP-PPP</title>
 <style>
 html,body{height:100%;margin:0;font-family:Arial,sans-serif;background:#f5f7fa;color:#123}
 #status{display:flex;align-items:center;justify-content:center;height:100%;padding:24px;text-align:center}
 </style>
 </head>
 <body>
-<div id="status">Carregando a Matriz Hídrica IRP–PPP Digital...</div>
+<div id="status">Carregando a Matriz Essencial IRP-PPP...</div>
 <script>
 (async()=>{
   const parts = await Promise.all(
-    Array.from({length:7},(_,i)=>fetch(`part${i}.txt`).then(r=>{
+    Array.from({length:3},(_,i)=>fetch(`v2part${i}.txt`).then(r=>{
       if(!r.ok) throw new Error(`Falha ao carregar parte ${i}`);
       return r.text();
     }))
@@ -32,7 +32,7 @@ html,body{height:100%;margin:0;font-family:Arial,sans-serif;background:#f5f7fa;c
   document.write(html);
   document.close();
 })().catch(e=>{
-  document.getElementById('status').textContent='Não foi possível carregar o dashboard: '+e.message;
+  document.getElementById('status').textContent='Não foi possível carregar a matriz: '+e.message;
 });
 </script>
 </body>
